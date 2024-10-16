@@ -1,26 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
+
 import axios from 'axios';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { GridLoader } from 'react-spinners';
-import { addProductInStore } from '../app/action'
+import { addToCart } from '../app/Store/action'
 const Products = () => {
     const [allProducts, setAllProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-
     const dispatch = useDispatch();
-    const [cartProducts, setCartProducts] = useState([]);
     const [cartIds, setCartIds] = useState([]);
-    const store = useSelector(state => state?.reducer);
+    const [selectedOption, setSelectedOption]= useState('')
 
-    console.log(store)
+    const store = useSelector(state => state);
+    console.log('this is our store', store);
+
+    // console.log(store)
     const getProducts = async () => {
         setIsLoading(true)
         const response = await axios.get("https://fakestoreapi.com/products");
         if (response?.status == '200' && response?.data) {
-            console.log(response?.data)
+            // console.log(response?.data)
             setAllProducts(response?.data);
             setIsLoading(false)
         }
@@ -40,7 +42,8 @@ const Products = () => {
 
     const handleChange = (event) => {
         const newValue = event.target.value;
-        console.log(newValue)
+        // console.log(newValue)
+        setSelectedOption(newValue)
         sortingFunc(newValue)
     };
 
@@ -48,7 +51,7 @@ const Products = () => {
 
     const sortingFunc = async (selectedOption) => {
         setIsLoading(true)
-        console.log(selectedOption)
+        // console.log(selectedOption)
         if (selectedOption == '') {
             setIsLoading(false)
         };
@@ -71,32 +74,32 @@ const Products = () => {
     }
 
 
-
-    useEffect(() => {
-        setCartProducts(store?.cart);
-        const productIds = store?.cart.reduce((acc, product) => {
-            acc.push(product.id);
-            return acc;
-        }, []);
-        setCartIds(productIds)
-    }, [store?.cart])
-
-    console.log("store we are", store?.cart)
-
-    // add to cart handle that will add our cart item in store
-
     const addToCartHandle = (product) => {
-        product['quantity'] = 0;
-        const newArr = [...cartProducts, product];
+        product['quantity'] = 1;
         const newIdArr = [...cartIds, product?.id];
         setCartIds(newIdArr)
-        setCartProducts(newArr)
-
+        const productsArr = [...store?.cart, product];
+        dispatch(addToCart(productsArr));
+        
+        localStorage?.setItem("cartItems", JSON.stringify(productsArr))
     }
 
+
     useEffect(() => {
-        dispatch(addProductInStore(cartProducts))
-    }, [cartProducts])
+        const products = localStorage.getItem("cartItems");
+        if (products) {
+            const allProduct = JSON.parse(products);
+            const productIds = allProduct.reduce((acc, product) => {
+                acc.push(product.id);
+                return acc;
+            }, []);
+            setCartIds(productIds)
+            dispatch(addToCart(allProduct))
+            sortingFunc(selectedOption)
+        }
+    }, [])
+
+
 
 
     if (isLoading) {

@@ -1,17 +1,37 @@
-import React from 'react';
+'use client'
+import { addToCart } from '@/app/Store/action';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect } from 'react';
 import { FaCartArrowDown } from "react-icons/fa";
+import { useDispatch, useSelector } from 'react-redux';
 const Header = () => {
+
+    const store: any = useSelector(state => state)
+    const dispatch = useDispatch();
+    useEffect(() => {
+        const products = localStorage.getItem("cartItems");
+        if (products) {
+            const allProduct = JSON.parse(products);
+            console.log(allProduct, 'from bul')
+            const totalQuantity = allProduct.reduce((total: any, item: any) => total + item.quantity, 0);
+            console.log(totalQuantity)
+            dispatch(addToCart(allProduct))
+            return;
+        }
+    }, [])
+
     return (
         <div>
             <header className="p-4  text-gray-900 w-4/5 mx-auto">
                 <div className="container flex justify-between h-16 mx-auto">
                     <a rel="noopener noreferrer" href="/" aria-label="Back to homepage" className="flex flex-row items-center uppercase gap-3">
-                        <FaCartArrowDown className='text-5xl'/>
+                        <FaCartArrowDown className='text-5xl' />
                         <p className='text-3xl font-mono font-bold'>AlgoStore</p>
                     </a>
                     <ul className="hidden space-x-3 md:flex items-center gap-5">
                         <li className="flex">
                             <a rel="noopener noreferrer" href="/cart" className="font-semibold text-lg">Cart</a>
+                         
                         </li>
                         <button className='bg-gray-800 text-white border px-5 py-1 rounded-md'>Subscribe</button>
                     </ul>

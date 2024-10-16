@@ -1,12 +1,10 @@
 // app/layout.js
 
 'use client'; // Mark this file as a client component
-
+import store from '../app/Store/store'
 import localFont from "next/font/local";
 import "./globals.css";
 import { Provider } from "react-redux";
-import store from "./store"; // Adjust the path if necessary
-
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",

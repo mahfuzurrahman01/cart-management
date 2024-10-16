@@ -4,7 +4,7 @@ import React from 'react';
 
 const page = () => {
     return (
-        <div className='min-h-screen bg-slate-900'>
+        <div>
             <Header/>
             <Cart/>
         </div>
