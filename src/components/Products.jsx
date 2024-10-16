@@ -3,12 +3,19 @@
 import axios from 'axios';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { GridLoader } from 'react-spinners';
-
+import { addProductInStore } from '../app/action'
 const Products = () => {
     const [allProducts, setAllProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedOption, setSelectedOption] = useState('')
+
+    const dispatch = useDispatch();
+    const [cartProducts, setCartProducts] = useState([]);
+    const [cartIds, setCartIds] = useState([]);
+    const store = useSelector(state => state?.reducer);
+
+    console.log(store)
     const getProducts = async () => {
         setIsLoading(true)
         const response = await axios.get("https://fakestoreapi.com/products");
@@ -18,6 +25,9 @@ const Products = () => {
             setIsLoading(false)
         }
     }
+
+
+
     useEffect(() => {
         try {
             getProducts()
@@ -26,9 +36,10 @@ const Products = () => {
         }
     }, [])
 
+
+
     const handleChange = (event) => {
         const newValue = event.target.value;
-        setSelectedOption(newValue);
         console.log(newValue)
         sortingFunc(newValue)
     };
@@ -58,6 +69,35 @@ const Products = () => {
         }
 
     }
+
+
+
+    useEffect(() => {
+        setCartProducts(store?.cart);
+        const productIds = store?.cart.reduce((acc, product) => {
+            acc.push(product.id);
+            return acc;
+        }, []);
+        setCartIds(productIds)
+    }, [store?.cart])
+
+    console.log("store we are", store?.cart)
+
+    // add to cart handle that will add our cart item in store
+
+    const addToCartHandle = (product) => {
+        product['quantity'] = 0;
+        const newArr = [...cartProducts, product];
+        const newIdArr = [...cartIds, product?.id];
+        setCartIds(newIdArr)
+        setCartProducts(newArr)
+
+    }
+
+    useEffect(() => {
+        dispatch(addProductInStore(cartProducts))
+    }, [cartProducts])
+
 
     if (isLoading) {
         return <div className='min-h-screen w-full flex justify-center items-center'>
@@ -98,14 +138,16 @@ const Products = () => {
                                     <svg className="w-3 h-3 text-yellow-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
                                         <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
                                     </svg>
-                                <span className="text-xs font-semibold">{item?.rating?.rate}</span>
+                                    <span className="text-xs font-semibold">{item?.rating?.rate}</span>
                                 </div>
                                 <span className="text-xl font-semibold font-mono text-gray-900 dark:text-white">${item?.price}</span>
                             </div>
- 
+
 
                         </div>
-                        <button href="#" className="text-white duration-300 absolute bottom-1 left-0 right-0 mx-auto w-[95%] bg-red-700 hover:bg-red-800 ring-red-300 rounded-md text-xs py-1">Add to cart</button>
+                        {
+                            cartIds?.includes(item?.id) ? <button className="text-white duration-300 absolute bottom-1 left-0 right-0 mx-auto w-[95%] bg-red-700 hover:bg-red-800 ring-red-300 rounded-md text-xs py-1">Added</button> : <button onClick={() => addToCartHandle(item)} className="text-white duration-300 absolute bottom-1 left-0 right-0 mx-auto w-[95%] bg-gray-700 hover:bg-gray-800 ring-red-300 rounded-md text-xs py-1">Add to cart</button>
+                        }
                     </div>)
                 }
             </div>
